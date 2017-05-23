@@ -1,0 +1,16 @@
+PODS:
+  - IPaTableViewPageController (0.1.0)
+
+DEPENDENCIES:
+  - IPaTableViewPageController (from `../`)
+
+EXTERNAL SOURCES:
+  IPaTableViewPageController:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  IPaTableViewPageController: 491459a567c84c3c0e1e555c0eea6a52967220c5
+
+PODFILE CHECKSUM: fff8666955f16d58ed53fd18ba900e7a97dfc571
+
+COCOAPODS: 1.2.1

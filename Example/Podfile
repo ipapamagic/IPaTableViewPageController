@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'IPaTableViewPageController_Example' do
+  pod 'IPaTableViewPageController', :path => '../'
+
+  target 'IPaTableViewPageController_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
