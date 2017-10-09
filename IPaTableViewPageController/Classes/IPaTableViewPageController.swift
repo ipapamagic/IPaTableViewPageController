@@ -22,16 +22,18 @@ open class IPaTableViewPageController : NSObject,UITableViewDataSource {
     var currentPage = 0
     var currentLoadingPage = -1
     var datas = [Any]()
+    var hasLoadingCell = false
+    open var noLoadingCellAtBegining = false
     open var dataCount:Int {
         get {
             return datas.count
         }
     }
     open var delegate:IPaTableViewPageControllerDelegate!
-    public func getData(index:Int) -> Any? {
+    open func getData(index:Int) -> Any? {
         return (datas.count <= index) ? nil : datas[index]
     }
-    public func reloadAllData() {
+    open func reloadAllData() {
         totalPageNum = 1;
         currentPage = 0;
         currentLoadingPage = -1;
@@ -39,57 +41,73 @@ open class IPaTableViewPageController : NSObject,UITableViewDataSource {
         let tableView = delegate.tableView(forPageController: self)
         tableView.reloadData()
     }
-    public func isLoadingCell(_ indexPath:IndexPath) -> Bool {
+    open func loadNextPage() {
+        if (currentLoadingPage != currentPage + 1) {
+            currentLoadingPage = currentPage + 1;
+            delegate.loadData(forPageController:self, page: currentLoadingPage, complete: {
+                newDatas,totalPage,currentPage in
+                self.totalPageNum = totalPage
+                if currentPage != self.currentLoadingPage {
+                    return
+                }
+                self.currentPage = self.currentLoadingPage
+                self.currentLoadingPage = -1
+                var indexList = [IndexPath]()
+                let startRow = self.datas.count
+                for idx in 0..<newDatas.count {
+                    indexList.append(IndexPath(row: startRow + idx, section: 0))
+                }
+                self.datas = self.datas + newDatas
+                DispatchQueue.main.async {
+                    let tableView = self.delegate.tableView(forPageController:self)
+                    tableView.beginUpdates()
+                    if self.currentPage == self.totalPageNum {
+                        if self.hasLoadingCell {
+                            tableView.deleteRows(at: [IndexPath(row: startRow, section: 0)], with: .automatic)
+                        }
+                    }
+                    else if !self.hasLoadingCell {
+                        //add back loading cell
+                        indexList.append(IndexPath(row: startRow + newDatas.count, section: 0))
+                    }
+                    
+                    
+                    if indexList.count > 0 {
+                        tableView.insertRows(at: indexList, with: .automatic)
+                    }
+                    tableView.endUpdates()
+                    if self.currentPage != self.totalPageNum {
+                        tableView.reloadRows(at: [IndexPath(row: self.datas.count, section: 0)], with: .automatic)
+                    }
+                }
+            })
+            
+        }
+    }
+    open func isLoadingCell(_ indexPath:IndexPath) -> Bool {
         return Bool(indexPath.row == datas.count)
     }
     // MARK:Table view data source
-    public func numberOfSections(in tableView: UITableView) -> Int {
+    open func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        hasLoadingCell = false
+        if currentPage == 0 && noLoadingCellAtBegining {
+            return 0
+        }
         if currentPage == totalPageNum {
             return datas.count
         }
+        hasLoadingCell = true
         return datas.count + 1
     }
-    public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         var cell:UITableViewCell
         
         if isLoadingCell(indexPath) {
             cell = delegate.createLoadingCell(forPageController:self, indexPath: indexPath)
-            if (currentLoadingPage != currentPage + 1) {
-                currentLoadingPage = currentPage + 1;
-                delegate.loadData(forPageController:self, page: currentLoadingPage, complete: {
-                    newDatas,totalPage,currentPage in
-                    self.totalPageNum = totalPage
-                    if currentPage != self.currentLoadingPage {
-                        return
-                    }
-                    self.currentPage = self.currentLoadingPage
-                    self.currentLoadingPage = -1
-                    var indexList = [IndexPath]()
-                    let startRow = self.datas.count
-                    for idx in 0..<newDatas.count {
-                        indexList.append(IndexPath(row: startRow + idx, section: indexPath.section))
-                    }
-                    self.datas = self.datas + newDatas
-                    DispatchQueue.main.async {
-                        let tableView = self.delegate.tableView(forPageController:self)
-                        tableView.beginUpdates()
-                        if self.currentPage == self.totalPageNum {
-                            tableView.deleteRows(at: [IndexPath(row: startRow, section: indexPath.section)], with: .automatic)
-                        }
-                        if indexList.count > 0 {
-                            tableView.insertRows(at: indexList, with: .automatic)
-                        }
-                        tableView.endUpdates()
-                        if self.currentPage != self.totalPageNum {
-                            tableView.reloadRows(at: [IndexPath(row: self.datas.count, section: indexPath.section)], with: .automatic)
-                        }
-                    }
-                })
-                
-            }
+            self.loadNextPage()
             delegate.configureLoadingCell(forPageController:self, cell: cell, indexPath: indexPath)
         }
         else {
