@@ -39,7 +39,7 @@ open class IPaTableViewPageController : NSObject,UITableViewDataSource {
         let tableView = delegate.tableView(forPageController: self)
         tableView.reloadData()
     }
-    func isLoadingCell(_ indexPath:IndexPath) -> Bool {
+    public func isLoadingCell(_ indexPath:IndexPath) -> Bool {
         return Bool(indexPath.row == datas.count)
     }
     // MARK:Table view data source
