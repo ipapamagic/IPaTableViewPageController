@@ -27,6 +27,7 @@ open class IPaTableViewPageController : NSObject,UITableViewDataSource {
     var datas = [Any]()
     var hasLoadingCell = false
     var hasNoDataCell = false
+    open var insertAnimation = true
     open var noLoadingCellAtBegining = false
     open var enableNoDataCell = false
     open var dataCount:Int {
@@ -65,36 +66,53 @@ open class IPaTableViewPageController : NSObject,UITableViewDataSource {
                 self.datas = self.datas + newDatas
                 DispatchQueue.main.async {
                     let tableView = self.delegate.tableView(forPageController:self)
-                    tableView.beginUpdates()
-                    if self.currentPage == self.totalPageNum {
-                        if self.currentPage == 0 && self.hasNoDataCell {
-                            tableView.deleteRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
-                            self.hasNoDataCell = false
-                        }
-                        else if self.hasLoadingCell {
-                            tableView.deleteRows(at: [IndexPath(row: startRow, section: 0)], with: .automatic)
-                        }
-                    }
-                    else if !self.hasLoadingCell {
-                        //add back loading cell
-                        indexList.append(IndexPath(row: startRow + newDatas.count, section: 0))
-                    }
                     
-                    
-                    if indexList.count > 0 {
-                        tableView.insertRows(at: indexList, with: .automatic)
-                    }
-                    if self.currentPage != self.totalPageNum {
-                        tableView.endUpdates() //need to call before reloadRows
-                        tableView.reloadRows(at: [IndexPath(row: self.datas.count, section: 0)], with: .automatic)
-                    }
-                    else {
-                        if self.enableNoDataCell && self.datas.count == 0 && self.currentPage == 1 && self.totalPageNum == 1 {
-                            tableView.insertRows(at: [IndexPath(row:0,section:0)], with: .automatic)
-                            self.hasNoDataCell = true
+                    if self.insertAnimation {
+                        tableView.beginUpdates()
+                        if self.currentPage == self.totalPageNum {
+                            if self.currentPage == 0 && self.hasNoDataCell {
+                                tableView.deleteRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
+                                self.hasNoDataCell = false
+                            }
+                            else if self.hasLoadingCell {
+                                tableView.deleteRows(at: [IndexPath(row: startRow, section: 0)], with: .automatic)
+                            }
+                        }
+                        else if !self.hasLoadingCell {
+                            //add back loading cell
+                            indexList.append(IndexPath(row: startRow + newDatas.count, section: 0))
                         }
                         
-                        tableView.endUpdates() //need to call after insert new rows
+                        
+                        if indexList.count > 0 {
+                            tableView.insertRows(at: indexList, with: .automatic)
+                        }
+                        if self.currentPage != self.totalPageNum {
+                            tableView.endUpdates() //need to call before reloadRows
+                            tableView.reloadRows(at: [IndexPath(row: self.datas.count, section: 0)], with: .automatic)
+                        }
+                        else {
+                            if self.enableNoDataCell && self.datas.count == 0 && self.currentPage == 1 && self.totalPageNum == 1 {
+                                tableView.insertRows(at: [IndexPath(row:0,section:0)], with: .automatic)
+                                self.hasNoDataCell = true
+                            }
+                            
+                            tableView.endUpdates() //need to call after insert new rows
+                        }
+                    }
+                    else {
+                        if self.currentPage == self.totalPageNum {
+                            if self.currentPage == 0 && self.hasNoDataCell {
+                              
+                                self.hasNoDataCell = false
+                            }
+                        
+                            if self.enableNoDataCell && self.datas.count == 0 && self.currentPage == 1 && self.totalPageNum == 1 {
+                             
+                                self.hasNoDataCell = true
+                            }
+                        }
+                        tableView.reloadData()
                     }
                 }
             })
