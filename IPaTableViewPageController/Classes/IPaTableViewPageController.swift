@@ -35,11 +35,11 @@ open class IPaTableViewPageController : NSObject,UITableViewDataSource {
             return datas.count
         }
     }
-    open var delegate:IPaTableViewPageControllerDelegate!
-    open func getData(index:Int) -> Any? {
+    @objc open var delegate:IPaTableViewPageControllerDelegate!
+    @objc open func getData(index:Int) -> Any? {
         return (datas.count <= index) ? nil : datas[index]
     }
-    open func reloadAllData() {
+    @objc open func reloadAllData() {
         totalPageNum = 1;
         currentPage = 0;
         currentLoadingPage = -1;
@@ -47,7 +47,7 @@ open class IPaTableViewPageController : NSObject,UITableViewDataSource {
         let tableView = delegate.tableView(forPageController: self)
         tableView.reloadData()
     }
-    open func loadNextPage() {
+    @objc open func loadNextPage() {
         if (currentLoadingPage != currentPage + 1) {
             currentLoadingPage = currentPage + 1;
             delegate.loadData(forPageController:self, page: currentLoadingPage, complete: {
@@ -119,17 +119,17 @@ open class IPaTableViewPageController : NSObject,UITableViewDataSource {
             
         }
     }
-    open func isLoadingCell(_ indexPath:IndexPath) -> Bool {
+    @objc open func isLoadingCell(_ indexPath:IndexPath) -> Bool {
         return Bool(indexPath.row == datas.count && currentPage != totalPageNum)
     }
-    open func isNoDataCell(_ indexPath:IndexPath) -> Bool {
+    @objc open func isNoDataCell(_ indexPath:IndexPath) -> Bool {
         return Bool(indexPath.row == 0 && datas.count == 0 && currentPage == totalPageNum && totalPageNum == 1)
     }
     // MARK:Table view data source
-    open func numberOfSections(in tableView: UITableView) -> Int {
+    @objc open func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-    open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    @objc open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         hasLoadingCell = false
         if currentPage == 0 && noLoadingCellAtBegining {
             return 0
@@ -143,7 +143,7 @@ open class IPaTableViewPageController : NSObject,UITableViewDataSource {
         hasLoadingCell = true
         return datas.count + 1
     }
-    open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    @objc open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         var cell:UITableViewCell
         if isNoDataCell(indexPath) {
             cell = delegate.createNoDataCell!(forPageController: self)
